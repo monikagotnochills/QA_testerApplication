@@ -1,0 +1,46 @@
+name: Selenium Functional Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Selenium Tests
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r automation_selenium/requirements.txt
+
+    - name: Run Selenium tests
+      working-directory: ./automation_selenium
+      run: pytest --html=report.html --self-contained-html
+
+    - name: Upload HTML report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: selenium-test-report
+        path: automation_selenium/report.html
+        retention-days: 14

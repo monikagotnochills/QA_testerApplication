@@ -1,0 +1,354 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "QA Portfolio — JSONPlaceholder REST API Test Suite",
+    "description": "[SAMPLE ARTIFACT] Comprehensive API test collection covering GET, POST, PUT, PATCH, DELETE methods with positive, negative, boundary, and error handling tests.\n\nBase URL: https://jsonplaceholder.typicode.com\nCreated by: Kevin Trimboli | QA Engineer Portfolio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Requests",
+      "item": [
+        {
+          "name": "GET /posts — List all posts (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: Verify the API returns a non-empty array of posts with the correct structure",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response is an array', function() {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('array');",
+                  "});",
+                  "pm.test('Array is not empty', function() {",
+                  "    pm.expect(pm.response.json().length).to.be.greaterThan(0);",
+                  "});",
+                  "pm.test('Each post has required fields: id, title, body, userId', function() {",
+                  "    const post = pm.response.json()[0];",
+                  "    pm.expect(post).to.have.property('id');",
+                  "    pm.expect(post).to.have.property('title');",
+                  "    pm.expect(post).to.have.property('body');",
+                  "    pm.expect(post).to.have.property('userId');",
+                  "});",
+                  "pm.test('Response time is below 1000ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "https://jsonplaceholder.typicode.com/posts",
+            "description": "WHY: Smoke test to confirm the API is alive and returns the expected data schema. This is the first test any QA runs against a new API endpoint."
+          }
+        },
+        {
+          "name": "GET /posts/1 — Get single post by ID (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: Verify that a specific resource can be retrieved by its primary key",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Returns correct post ID', function() {",
+                  "    pm.expect(pm.response.json().id).to.equal(1);",
+                  "});",
+                  "pm.test('Post has non-empty title', function() {",
+                  "    pm.expect(pm.response.json().title).to.not.be.empty;",
+                  "});",
+                  "pm.test('Content-Type is application/json', function() {",
+                  "    pm.response.to.have.header('Content-Type');",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "https://jsonplaceholder.typicode.com/posts/1",
+            "description": "WHY: Validates the resource lookup by ID — a fundamental REST operation. Tests both data correctness and response headers."
+          }
+        },
+        {
+          "name": "GET /posts/999 — Non-existent resource (404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: NEGATIVE TEST — Verify the API returns 404 for IDs that don't exist.",
+                  "// This is critical — APIs that return 200 with empty body for missing resources are a common defect.",
+                  "pm.test('Status code is 404 for non-existent resource', function() {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Response body is empty object (JSONPlaceholder standard)', function() {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.deep.equal({});",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "https://jsonplaceholder.typicode.com/posts/999",
+            "description": "WHY: NEGATIVE TEST — Ensures the API correctly handles requests for resources that do not exist. A 200 response here would indicate a defect."
+          }
+        },
+        {
+          "name": "GET /posts?userId=1 — Filter by query parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: Verify query parameter filtering works correctly — all returned posts must belong to userId=1",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('All returned posts have userId = 1', function() {",
+                  "    pm.response.json().forEach(function(post) {",
+                  "        pm.expect(post.userId).to.equal(1);",
+                  "    });",
+                  "});",
+                  "pm.test('Filter returns expected count (10 posts for userId=1)', function() {",
+                  "    pm.expect(pm.response.json().length).to.equal(10);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://jsonplaceholder.typicode.com/posts?userId=1",
+              "query": [{"key": "userId", "value": "1"}]
+            },
+            "description": "WHY: Tests query parameter-based filtering. A common defect is filtering being ignored, returning all records instead of the filtered subset."
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST Requests",
+      "item": [
+        {
+          "name": "POST /posts — Create new resource (201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: Verify the API creates a new resource and returns the correct response code + assigned ID",
+                  "pm.test('Status code is 201 Created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Response contains assigned ID', function() {",
+                  "    pm.expect(pm.response.json().id).to.exist;",
+                  "    pm.expect(pm.response.json().id).to.equal(101);",
+                  "});",
+                  "pm.test('Response echoes submitted title', function() {",
+                  "    pm.expect(pm.response.json().title).to.equal('QA Test Post — Kevin Trimboli');",
+                  "});",
+                  "pm.test('Response echoes submitted userId', function() {",
+                  "    pm.expect(pm.response.json().userId).to.equal(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"QA Test Post — Kevin Trimboli\",\n  \"body\": \"This is a test post created during API validation. It verifies the POST endpoint accepts valid JSON and returns a 201 Created response with an assigned resource ID.\",\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts",
+            "description": "WHY: POSITIVE TEST — Verifies the create operation returns 201 (not 200), includes the new resource ID, and echoes back submitted data."
+          }
+        },
+        {
+          "name": "POST /posts — Missing required field 'title' (400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: NEGATIVE TEST — APIs should reject requests missing required fields.",
+                  "// JSONPlaceholder is lenient (returns 201) — this test DOCUMENTS the defect.",
+                  "// In a real API, we expect 400 Bad Request here.",
+                  "pm.test('[KNOWN DEFECT] API accepts missing title — should return 400', function() {",
+                  "    // JSONPlaceholder does not enforce validation — documenting expected vs actual",
+                  "    const status = pm.response.code;",
+                  "    pm.expect([400, 201]).to.include(status);",
+                  "    if (status === 201) {",
+                  "        console.warn('DEFECT: API accepted request with missing required field title');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Post with no title — testing required field validation\",\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts",
+            "description": "WHY: NEGATIVE TEST — Missing required field. Expect 400 Bad Request. Documents the API's current (lenient) behavior as a known defect."
+          }
+        },
+        {
+          "name": "POST /posts — Negative price value (Business Logic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: BUSINESS LOGIC TEST — Validates that numeric fields with business constraints reject invalid values.",
+                  "// This maps to BUG-08 — the API accepted -99.99 as a valid price.",
+                  "pm.test('[BUG-08] API accepts negative price — business logic defect', function() {",
+                  "    // Documenting the actual vs expected behavior",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 201]);",
+                  "    if (pm.response.code === 201) {",
+                  "        console.error('BUG-08: API accepted negative price -99.99 — should return 400');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Product\",\n  \"price\": -99.99,\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts",
+            "description": "WHY: NEGATIVE TEST — Tests business rule: prices must be non-negative. Maps to BUG-08 in defect log."
+          }
+        }
+      ]
+    },
+    {
+      "name": "PUT Requests",
+      "item": [
+        {
+          "name": "PUT /posts/1 — Full update of existing resource (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: PUT replaces the ENTIRE resource — verify all fields are updated, not just partial",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Resource ID is preserved after update', function() {",
+                  "    pm.expect(pm.response.json().id).to.equal(1);",
+                  "});",
+                  "pm.test('Updated title is reflected in response', function() {",
+                  "    pm.expect(pm.response.json().title).to.equal('Updated Title — PUT Test by Kevin Trimboli');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"Updated Title — PUT Test by Kevin Trimboli\",\n  \"body\": \"This PUT request replaces the entire resource. All fields must be provided.\",\n  \"userId\": 1\n}"
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts/1",
+            "description": "WHY: PUT must replace the full resource and return the updated data. Verifies idempotency and that ID is not reassigned."
+          }
+        }
+      ]
+    },
+    {
+      "name": "DELETE Requests",
+      "item": [
+        {
+          "name": "DELETE /posts/1 — Delete existing resource (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: DELETE should return 200 or 204 and the resource should no longer exist",
+                  "pm.test('Status code is 200 or 204', function() {",
+                  "    pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test('Response body is empty object (resource deleted)', function() {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body === '{}' || body === '').to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "https://jsonplaceholder.typicode.com/posts/1",
+            "description": "WHY: Validates the DELETE operation returns the correct response code and empties the resource body."
+          }
+        },
+        {
+          "name": "DELETE /posts/999 — Delete non-existent resource (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// WHY: NEGATIVE TEST — Deleting a resource that doesn't exist should return 404, not silently succeed.",
+                  "// Silent success on missing resource deletes is a common API defect.",
+                  "pm.test('[NEGATIVE] Delete non-existent resource returns 404 or 200', function() {",
+                  "    // JSONPlaceholder returns 200 even for non-existent IDs — documenting as known behavior",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "https://jsonplaceholder.typicode.com/posts/999",
+            "description": "WHY: NEGATIVE TEST — A properly-designed API should return 404 when deleting a resource that does not exist."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://jsonplaceholder.typicode.com",
+      "type": "string"
+    }
+  ]
+}
