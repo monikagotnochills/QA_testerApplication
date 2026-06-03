@@ -129,19 +129,6 @@ GitHub Actions runs on every push to main:
 - Executes Selenium/Pytest tests
 - Uploads HTML reports as artifacts
 
----
-
-## Interview-Ready Topics
-
-Ask me about:
-1. How I design a test strategy from scratch
-2. My approach to Page Object Model in Playwright vs Selenium
-3. How I use AI tools to speed up test case generation
-4. How I prioritize defects by severity vs priority
-5. How I set up a CI/CD pipeline for QA automation
-
----
-
 ## Contact
 mail: ms3319341@gmail.com
 GitHub: https://github.com/monikagotnochills
